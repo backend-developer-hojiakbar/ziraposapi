@@ -65,6 +65,16 @@ class StoreSettingsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class WarehouseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        validated_data['id'] = f"wh_{shortuuid.random(length=8)}"
+        return super().create(validated_data)
+
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -74,6 +84,32 @@ class ProductSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['id'] = f"prod_{shortuuid.random(length=10)}"
         return super().create(validated_data)
+
+class WarehouseProductSerializer(serializers.ModelSerializer):
+    warehouse = WarehouseSerializer(read_only=True)
+    product = ProductSerializer(read_only=True)
+    warehouseId = serializers.PrimaryKeyRelatedField(
+        queryset=Warehouse.objects.all(),
+        source='warehouse',
+        write_only=True
+    )
+    productId = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        source='product',
+        write_only=True
+    )
+    
+    class Meta:
+        model = WarehouseProduct
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        validated_data['id'] = f"wh_prod_{shortuuid.random(length=10)}"
+        return super().create(validated_data)
+
+
+
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -160,6 +196,15 @@ class SaleSerializer(serializers.ModelSerializer):
                 product = item_data['product']
                 product.stock -= item_data['quantity']
                 product.save()
+                
+                # Create stock movement record for sales
+                StockMovement.objects.create(
+                    product=product,
+                    quantity=item_data['quantity'],
+                    type=StockMovement.MovementType.SAVDO,
+                    relatedId=sale_id,
+                    comment=f"Savdo: {sale_id}"
+                )
 
             for payment_data in payments_data:
                 SalePayment.objects.create(sale=sale, **payment_data)
@@ -194,11 +239,18 @@ class GoodsReceiptSerializer(serializers.ModelSerializer):
         write_only=True
     )
     supplier = SupplierSerializer(read_only=True)
+    warehouseId = serializers.PrimaryKeyRelatedField(  # Add warehouse field
+        queryset=Warehouse.objects.all(),
+        source='warehouse',
+        write_only=True,
+        required=False
+    )
+    warehouse = WarehouseSerializer(read_only=True)  # Add warehouse field
 
     class Meta:
         model = GoodsReceipt
-        fields = ['id', 'date', 'supplier', 'supplierId', 'docNumber', 'items', 'totalAmount']
-        read_only_fields = ['id', 'date', 'supplier']
+        fields = ['id', 'date', 'supplier', 'supplierId', 'docNumber', 'items', 'totalAmount', 'warehouse', 'warehouseId']
+        read_only_fields = ['id', 'date', 'supplier', 'warehouse']
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -212,6 +264,15 @@ class GoodsReceiptSerializer(serializers.ModelSerializer):
                 product.stock += item_data['quantity']
                 product.purchasePrice = item_data['purchasePrice']
                 product.save()
+                
+                # Create stock movement record
+                StockMovement.objects.create(
+                    product=product,
+                    quantity=item_data['quantity'],
+                    type=StockMovement.MovementType.KIRIM,
+                    relatedId=receipt_id,
+                    comment=f"Omborga kirim: {receipt.docNumber or receipt_id}"
+                )
 
             return receipt
 
@@ -221,3 +282,18 @@ class DebtPaymentSerializer(serializers.ModelSerializer):
         model = DebtPayment
         fields = ['customerId', 'amount', 'paymentType']
         extra_kwargs = {'customerId': {'source': 'customer_id'}}
+
+
+class StockMovementSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    productId = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        source='product',
+        write_only=True
+    )
+    
+    class Meta:
+        model = StockMovement
+        fields = '__all__'
+        read_only_fields = ['id', 'date']
+

@@ -37,6 +37,9 @@ class InitialDataView(APIView):
         goods_receipts_qs = GoodsReceipt.objects.select_related('supplier').prefetch_related('items__product').order_by('-date')[:100]
         sales_qs = Sale.objects.select_related('seller', 'seller__role', 'customer').prefetch_related('items__product').order_by('-date')[:200]
         employees_qs = Employee.objects.select_related('role').all()
+        stock_movements_qs = StockMovement.objects.select_related('product').order_by('-date')[:200]
+        warehouses_qs = Warehouse.objects.all()
+        warehouse_products_qs = WarehouseProduct.objects.select_related('warehouse', 'product').all()
         data = {
             'products': ProductSerializer(Product.objects.all(), many=True).data,
             'customers': CustomerSerializer(Customer.objects.all(), many=True).data,
@@ -48,6 +51,9 @@ class InitialDataView(APIView):
             'goodsReceipts': GoodsReceiptSerializer(goods_receipts_qs, many=True).data,
             'roles': RoleSerializer(Role.objects.all(), many=True).data,
             'employees': EmployeeSerializer(employees_qs, many=True).data,
+            'stockMovements': StockMovementSerializer(stock_movements_qs, many=True).data,
+            'warehouses': WarehouseSerializer(warehouses_qs, many=True).data,
+            'warehouseProducts': WarehouseProductSerializer(warehouse_products_qs, many=True).data,
         }
         return Response(data)
 
@@ -133,3 +139,48 @@ class DebtPaymentCreateView(generics.CreateAPIView):
                 paymentType=serializer.validated_data['paymentType']
             )
         return Response(DebtPaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
+
+
+class StockMovementViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = StockMovement.objects.select_related('product').order_by('-date')
+    serializer_class = StockMovementSerializer
+    permission_classes = [IsAuthenticated, HasPermission]
+    required_permission = 'manage_warehouse'
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        product_id = self.request.query_params.get('product_id', None)
+        movement_type = self.request.query_params.get('type', None)
+        
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
+        if movement_type:
+            queryset = queryset.filter(type=movement_type)
+            
+        return queryset
+
+
+class WarehouseViewSet(viewsets.ModelViewSet):
+    queryset = Warehouse.objects.all()
+    serializer_class = WarehouseSerializer
+    permission_classes = [IsAuthenticated, HasPermission]
+    required_permission = 'manage_warehouse'
+
+
+class WarehouseProductViewSet(viewsets.ModelViewSet):
+    queryset = WarehouseProduct.objects.select_related('warehouse', 'product').all()
+    serializer_class = WarehouseProductSerializer
+    permission_classes = [IsAuthenticated, HasPermission]
+    required_permission = 'manage_warehouse'
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        warehouse_id = self.request.query_params.get('warehouse_id', None)
+        product_id = self.request.query_params.get('product_id', None)
+        
+        if warehouse_id:
+            queryset = queryset.filter(warehouse_id=warehouse_id)
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
+            
+        return queryset

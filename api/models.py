@@ -175,12 +175,26 @@ class StockMovement(models.Model):
     comment = models.CharField(max_length=255, null=True, blank=True)
 
 
+class Warehouse(models.Model):
+    id = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
 class GoodsReceipt(models.Model):
     id = models.CharField(max_length=100, primary_key=True)
     date = models.DateTimeField(auto_now_add=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     docNumber = models.CharField(max_length=100, null=True, blank=True)
     totalAmount = models.DecimalField(max_digits=14, decimal_places=2)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, null=True, blank=True)  # Add warehouse field
 
 
 class GoodsReceiptItem(models.Model):
@@ -205,3 +219,23 @@ class StoreSettings(models.Model):
     receiptShowDate = models.BooleanField(default=True)
     receiptShowSeller = models.BooleanField(default=True)
     receiptShowCustomer = models.BooleanField(default=True)
+
+
+class WarehouseProduct(models.Model):
+    id = models.CharField(max_length=100, primary_key=True)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='warehouse_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.FloatField(default=0)
+    reserved_quantity = models.FloatField(default=0)  # For items reserved for orders
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('warehouse', 'product')
+
+    def __str__(self):
+        return f"{self.product.name} in {self.warehouse.name}"
+
+    @property
+    def available_quantity(self):
+        return self.quantity - self.reserved_quantity

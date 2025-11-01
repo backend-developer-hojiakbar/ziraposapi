@@ -9,6 +9,9 @@ router.register(r'suppliers', SupplierViewSet)
 router.register(r'roles', RoleViewSet)
 router.register(r'employees', EmployeeViewSet)
 router.register(r'units', UnitViewSet)
+router.register(r'stock-movements', StockMovementViewSet)
+router.register(r'warehouses', WarehouseViewSet)
+router.register(r'warehouse-products', WarehouseProductViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
