@@ -62,6 +62,28 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated, HasPermission]
     required_permission = 'manage_products'
+    
+    def create(self, request, *args, **kwargs):
+        # Handle both regular JSON and multipart form data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+    
+    def perform_create(self, serializer):
+        serializer.save(id=f'prod_{shortuuid.random(10)}')
+    
+    def perform_update(self, serializer):
+        serializer.save()
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()

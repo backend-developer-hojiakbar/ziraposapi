@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-66hvyr!u@6br13ft1#bqpnpo)8e$w-y@v5jo=i#$e!3&c^g02%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['ziraposapi.florix.uz', 'zirapos.florix.uz', 'localhost', '127.0.0.1']
 
@@ -131,6 +131,18 @@ import os
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Ensure media directory exists
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT)
+    
+# Ensure product_images directory exists
+product_images_dir = os.path.join(MEDIA_ROOT, 'product_images')
+if not os.path.exists(product_images_dir):
+    os.makedirs(product_images_dir)
+
 # QO'SHILADIGAN QATOR:
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -148,6 +160,11 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
     ]
 }
 
@@ -262,4 +279,17 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173", # Vite (React) development server
     "http://127.0.0.1:5173",
     "http://zirapos.florix.uz",
+    "http://127.0.0.1:8000", # Backend server for media files
 ]
+
+# Allow media files to be served
+CORS_ALLOW_ALL_ORIGINS = True  # Only for development
+
+# For serving media files in development
+import os
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("image/png", ".png", True)
+    mimetypes.add_type("image/jpeg", ".jpg", True)
+    mimetypes.add_type("image/jpeg", ".jpeg", True)
+    mimetypes.add_type("image/gif", ".gif", True)
