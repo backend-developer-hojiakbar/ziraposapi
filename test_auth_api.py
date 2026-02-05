@@ -20,7 +20,7 @@ access_token = str(refresh.access_token)
 print(f"Access token: {access_token}")
 
 # Test API with token
-base_url = "http://127.0.0.1:8000/api"
+base_url = "https://yengilfood1api.cdcgroup.uz/api"
 headers = {
     'Authorization': f'Bearer {access_token}',
     'Content-Type': 'application/json'

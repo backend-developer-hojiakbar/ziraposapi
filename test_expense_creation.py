@@ -20,7 +20,7 @@ expense_type = ExpenseType.objects.first()
 employee = Employee.objects.first()
 
 # Test expense creation
-base_url = "http://127.0.0.1:8000/api"
+base_url = "https://yengilfood1api.cdcgroup.uz/api"
 headers = {
     'Authorization': f'Bearer {access_token}',
     'Content-Type': 'application/json'
