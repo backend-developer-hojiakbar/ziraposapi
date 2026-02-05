@@ -242,3 +242,26 @@ class WarehouseProduct(models.Model):
     @property
     def available_quantity(self):
         return self.quantity - self.reserved_quantity
+class ExpenseType(models.Model):
+    id = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.display_name
+
+
+class Expense(models.Model):
+    id = models.CharField(max_length=100, primary_key=True)
+    date = models.DateTimeField(auto_now_add=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    type = models.ForeignKey(ExpenseType, on_delete=models.SET_NULL, null=True, related_name='expenses')
+    description = models.TextField(null=True, blank=True)
+    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, related_name='expenses')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.type} - {self.amount}"

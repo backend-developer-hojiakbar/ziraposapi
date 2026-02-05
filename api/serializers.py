@@ -297,3 +297,42 @@ class StockMovementSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'date']
 
+
+class ExpenseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpenseType
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        validated_data['id'] = f"exp_type_{shortuuid.random(length=8)}"
+        return super().create(validated_data)
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    employee = EmployeeSerializer(read_only=True)
+    employeeId = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        source='employee',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    type = ExpenseTypeSerializer(read_only=True)
+    typeId = serializers.PrimaryKeyRelatedField(
+        queryset=ExpenseType.objects.all(),
+        source='type',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    
+    class Meta:
+        model = Expense
+        fields = '__all__'
+        read_only_fields = ['id', 'date', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        validated_data['id'] = f"exp_{shortuuid.random(length=10)}"
+        return super().create(validated_data)
+

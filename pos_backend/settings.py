@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-66hvyr!u@6br13ft1#bqpnpo)8e$w-y@v5jo=i#$e!3&c^g02%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['ziraposapi.florix.uz', 'zirapos.florix.uz', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['yengilfood1api.cdcgroup.uz', '167.71.53.238', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -275,15 +275,16 @@ JAZZMIN_SETTINGS = {
     "changeform_format": "horizontal_tabs",
 }
 # CORS sozlamalari (Frontend manzilini ko'rsating)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", # Vite (React) development server
-    "http://127.0.0.1:5173",
-    "http://zirapos.florix.uz",
-    "http://127.0.0.1:8000", # Backend server for media files
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://yengilfood1api.cdcgroup.uz',
+    'https://yengilfood1.cdcgroup.uz'
 ]
 
-# Allow media files to be served
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development
+CORS_ALLOWED_ORIGINS = [
+    "https://yengilfood1.cdcgroup.uz",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # For serving media files in development
 import os

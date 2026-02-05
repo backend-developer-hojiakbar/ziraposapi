@@ -99,6 +99,35 @@ class UnitAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class ExpenseTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'display_name', 'id', 'created_at')
+    search_fields = ('name', 'display_name')
+    list_filter = ('created_at',)
+    ordering = ('name',)
+
+
+class ExpenseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'date', 'type', 'amount', 'employee', 'description')
+    list_filter = ('date', 'type', 'employee')
+    search_fields = ('description', 'type__name', 'type__display_name', 'employee__name', 'employee__phone')
+    readonly_fields = ('id', 'date', 'created_at', 'updated_at')
+    ordering = ('-date',)
+
+
+class WarehouseAdmin(admin.ModelAdmin):
+    list_display = ('name', 'location', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('name', 'location')
+    ordering = ('name',)
+
+
+class WarehouseProductAdmin(admin.ModelAdmin):
+    list_display = ('warehouse', 'product', 'quantity', 'reserved_quantity', 'available_quantity')
+    list_filter = ('warehouse', 'product')
+    search_fields = ('warehouse__name', 'product__name')
+    ordering = ('warehouse', 'product')
+
+
 # Modellarni admin panelida ro'yxatdan o'tkazish
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Role, RoleAdmin)
@@ -108,6 +137,10 @@ admin.site.register(Supplier, SupplierAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(GoodsReceipt, GoodsReceiptAdmin)
 admin.site.register(Unit, UnitAdmin)
+admin.site.register(ExpenseType, ExpenseTypeAdmin)
+admin.site.register(Expense, ExpenseAdmin)
+admin.site.register(Warehouse, WarehouseAdmin)
+admin.site.register(WarehouseProduct, WarehouseProductAdmin)
 
 # Bu modellarni ham oddiy ko'rinishda ro'yxatdan o'tkazamiz
 admin.site.register(StoreSettings)

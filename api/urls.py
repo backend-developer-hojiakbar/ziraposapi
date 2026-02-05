@@ -12,6 +12,8 @@ router.register(r'units', UnitViewSet)
 router.register(r'stock-movements', StockMovementViewSet)
 router.register(r'warehouses', WarehouseViewSet)
 router.register(r'warehouse-products', WarehouseProductViewSet)
+router.register(r'expense-types', ExpenseTypeViewSet)
+router.register(r'expenses', ExpenseViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -22,4 +24,5 @@ urlpatterns = [
     path('sales/', SaleCreateView.as_view(), name='create-sale'),
     path('goods-receipts/', GoodsReceiptCreateView.as_view(), name='create-goods-receipt'),
     path('debt-payments/', DebtPaymentCreateView.as_view(), name='create-debt-payment'),
+    path('dashboard/stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
 ]
